@@ -1,9 +1,11 @@
 <?xml version="1.0"?>
 <modules>
     <module>
-        <name>wasd</name>
-            <configPaths>
-                <path>configs/</path>
-            </configPaths>
-        </module>
+    	<name>socket_data_receiver</name>
+        <path>receiver/</path>
+    </module>
+    <module>
+    	<name>socket_data_sender</name>
+        <path>sender/</path>
+    </module>
 </modules>

@@ -1,13 +1,17 @@
-#include <socket_data_receiver/sender.h>
+#include <socket_data_sender/sender.h>
 
-Sender::cycle(){
-    //TODO
+bool Sender::cycle(){
+    server->cycle();
+    return true;
 }
 
-Sender::initialize(){
-    //TODO
+bool Sender::initialize(){
+    server = new socket_connection::SocketServer(&logger);
+    server->start(65111);
+    return true;
 }
 
-Sender::deinitialize(){
+bool Sender::deinitialize(){
     //TODO
+    return false;
 }

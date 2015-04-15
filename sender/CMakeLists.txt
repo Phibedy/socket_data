@@ -10,4 +10,4 @@ set (HEADERS
 include_directories("include")
 
 add_library ( socket_data_sender MODULE ${SOURCES} ${HEADERS})
-target_link_libraries(socket_data_sender PRIVATE lms)
+target_link_libraries(socket_data_sender PRIVATE lms socket_connection)
