@@ -3,9 +3,15 @@
     <module>
     	<name>socket_data_receiver</name>
         <path>receiver/</path>
+	<configPaths>
+                <path>configs/</path>
+        </configPaths>
     </module>
     <module>
     	<name>socket_data_sender</name>
         <path>sender/</path>
+	<configPaths>
+                <path>configs/</path>
+        </configPaths>
     </module>
 </modules>

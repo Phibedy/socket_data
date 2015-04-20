@@ -19,6 +19,12 @@ bool Receiver::initialize(){
     for(std::string &channel:channels){
         datamanager()->getWriteAccess(this,channel);
     }
+    if(channels.size() > 0){
+        registerChannelsAtServer(channels);
+    }else{
+        logger.warn("init") << "no channels to receive given!";
+    }
+
     return true;
 }
 
@@ -27,19 +33,23 @@ bool Receiver::deinitialize(){
     return false;
 }
 
-void Receiver::registerChannelsAtServer(){
-
+void Receiver::registerChannelsAtServer(const std::vector<std::string> &channels){
+    std::string toSend(1,(char)MessageType::REGISTER_CHANNEL);
+    for(const std::string &channel:channels){
+        toSend += channel;
+        toSend += ";";
+    }
+    client->sendMessageToAllServers(toSend.c_str(),toSend.size(),true);
 }
 
 void Receiver::getDataFromServer(){
-
+    std::string toSend =std::to_string((int)MessageType::GET_CHANNEL_DATA);
+    client->sendMessageToAllServers(toSend.c_str(),toSend.size(),true);
 }
 
-void Receiver::receivedMessage(const socket_connection::SocketConnector &from, char* buff, int bytesRead){
-
-    //datamanager()->deserializeChannel(this,"name",is)
-    //get type of message
+void Receiver::receivedMessage(socket_connection::SocketConnector &from, char* buff, int bytesRead){
     char type = buff[0];
+    logger.debug("Receiver::receivedMessage") << (int)type;
     switch ((MessageType)((int)type)) {
     case MessageType::CHANNEL_DATA:
         break;
@@ -47,10 +57,14 @@ void Receiver::receivedMessage(const socket_connection::SocketConnector &from, c
 
         break;
     case MessageType::CHANNEL_MAPPING:
+        logger.error("ES GEHT :D");
 
         break;
     case MessageType::ERROR:
 
+        break;
+    case MessageType::GET_CHANNEL_DATA:
+        //shouldn't be called on the receiver!
         break;
     case MessageType::REGISTER_CHANNEL:
         //shouldn't be called on the receiver!

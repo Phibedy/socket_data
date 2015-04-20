@@ -15,14 +15,12 @@ public:
 
     bool cycle();
 
-    void receivedMessage(const socket_connection::SocketConnector &from, char* buff, int bytesRead);
+    void receivedMessage(socket_connection::SocketConnector &from, char* buff, int bytesRead);
     void disconnected(const socket_connection::SocketConnector &disconnected);
     void connected(const socket_connection::SocketConnector &connected);
 
-
-    //testing
     std::map<std::string, char> channelMapping;
-    void registerChannelsAtServer();
+    void registerChannelsAtServer(const std::vector<std::string> &channels);
 
     void getDataFromServer();
 private:
