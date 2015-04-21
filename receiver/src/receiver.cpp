@@ -24,7 +24,6 @@ bool Receiver::initialize(){
     }else{
         logger.warn("init") << "no channels to receive given!";
     }
-
     return true;
 }
 
@@ -57,7 +56,7 @@ void Receiver::receivedMessage(socket_connection::SocketConnector &from, char* b
 
         break;
     case MessageType::CHANNEL_MAPPING:
-        logger.error("ES GEHT :D");
+        //channelMapping
 
         break;
     case MessageType::ERROR:

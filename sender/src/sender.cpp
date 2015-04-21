@@ -1,7 +1,7 @@
 #include <socket_data_sender/sender.h>
 #include <string>
 #include <socket_data/message_types.h>
-
+#include <lms/extra/string.h>
 bool Sender::cycle(){
     server->cycle();
     return true;
@@ -38,11 +38,26 @@ void Sender::receivedMessage(socket_connection::SocketConnector &from, char* buf
         //TODO does that really add an element if it doesn't exists? :D
         std::vector<int> &clientMapping = clientChannels[from.getID()];
 
+        //split the string
+        std::vector<std::string> channels = lms::extra::split(&buff[1],bytesRead-1,';');
+        if(clientMapping.size() == 0){
+            //no channels received!
+            break;
+        }
+
+        std::string ans(1,(char)MessageType::CHANNEL_MAPPING);
+        for(std::string &channel:channels){
+            int channelID = addChannel(channel);
+            clientMapping.push_back(channelID);
+            logger.debug("REGISTER_CHANNEL") <<"NAME-"<< channel<<"---";
+            ans += channel+";"+std::to_string(channelID)+";";
+        }
+        from.sendMessage(ans.c_str(),ans.length(),true);
+        /*
         char *resultBuff = &buff[1];
         int oldFound = 0;
         //add message id
         std::string ans(1,(char)MessageType::CHANNEL_MAPPING);
-
         for(int i = 0; i < bytesRead-1; i++){
             if(resultBuff[i] == ';'){
                 //found new part
@@ -55,6 +70,7 @@ void Sender::receivedMessage(socket_connection::SocketConnector &from, char* buf
             }
         }
         from.sendMessage(ans.c_str(),ans.length(),true);
+        */
         break;
     }
 }
