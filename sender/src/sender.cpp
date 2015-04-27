@@ -11,7 +11,7 @@ bool Sender::cycle(){
 bool Sender::initialize(){
     server = new socket_connection::SocketServer(&logger);
     server->setSocketListener(this);
-    server->start(65111);
+    server->start(getConfig()->get<int>("port",65111));
     return true;
 }
 

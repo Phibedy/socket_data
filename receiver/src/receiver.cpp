@@ -13,7 +13,7 @@ bool Receiver::cycle(){
 
 bool Receiver::initialize(){
     client = new socket_connection::SocketClient(&logger);
-    client->connectToServer("127.0.0.1",65111);
+    client->connectToServer(getConfig()->get<std::string>("ip","127.0.0.1"),getConfig()->get<int>("port",65111));
     client->setSocketListener(this);
 
     //get write access to all channels you want to deserialize
