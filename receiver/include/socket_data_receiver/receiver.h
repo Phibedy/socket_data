@@ -16,19 +16,50 @@ public:
 
     bool cycle();
 
+    //interface methods
     void receivedMessage(socket_connection::SocketConnector &from, char* buff, int bytesRead);
     void disconnected(const socket_connection::SocketConnector &disconnected);
     void connected(const socket_connection::SocketConnector &connected);
 
+    /**
+     * @brief registerChannelsAtServer registers channels at server, they are available if((after the next server-cycle - server processed messages) && (in the next cycle of the client))
+     * @param channels
+     */
     void registerChannelsAtServer(const std::vector<std::string> &channels);
 
-    void getDataFromServer();
+    /**
+     * @brief getDataFromServer asks for all data from the server
+     * @param force if set to true, the client will also ask for channels that he asked before and haven't received yet
+     */
+    void getDataFromServer(bool force);
+    /**
+     * @brief getDataFromServer asks for the channel given by the channelID
+     * @param channelID
+     */
+    void getDataFromServer(char channelID);
+    /**
+     * @brief getDataFromServer asks for the channel given by the channelName
+     * @param channelName
+     */
+    void getDataFromServer(std::string channelName);
 private:
     socket_connection::SocketClient *client;
     std::vector<ChannelMapping> m_channelMapping;
+    std::vector<int> busyChannels;
+
+    void startGettingChannel(char channelId);
+
+    void gotChannel(char channelId);
+    bool isChannelBusy(char channelId);
 
 
     void channelMapping(char* buff, int bytesRead);
+    /**
+     * @brief getChannelIdFromName
+     * @param name
+     * @return the iD of the channel or -1 if the channel wasn't found
+     */
+    char getChannelIdFromName(std::string name);
 };
 
 #endif /*SOCKET_DATA_RECEIVER_H*/

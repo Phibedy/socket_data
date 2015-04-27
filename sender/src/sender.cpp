@@ -33,8 +33,10 @@ void Sender::receivedMessage(socket_connection::SocketConnector &from, char* buf
     case MessageType::ERROR:
         break;
     case MessageType::GET_CHANNEL_DATA:
-        //TODO send channel data
-        logger.error("GETCHANNELDATA");
+        //send the given channel to the client
+        sendChannelToClient(from,buff[1]);
+        break;
+    case MessageType::GET_CHANNEL_DATA_ALL:
         sendChannelsToClient(from);
         break;
     case MessageType::REGISTER_CHANNEL:
@@ -68,17 +70,23 @@ void Sender::sendChannelsToClient(socket_connection::SocketConnector &from){
         logger.error("Client tried to get channels but has no registered!") <<"clientID: " <<from.getID();
     }
     for(char channelID : clientMapping){
-        //serialize channel and send it
-        std::ostringstream osstream;
-        //first byte is the typeID
-        char c = (char)MessageType::CHANNEL_DATA;
-        osstream.write(&c,1);
-        //second byte is the channelID
-        osstream.write(&channelID,1);
-        //write the data into the stream
-        datamanager()->serializeChannel(this,channelMapping[channelID].name,osstream);
-        from.sendMessage(osstream.str().c_str(),osstream.str().length(),true);
+        sendChannelToClient(from,channelID);
     }
+
+}
+
+void Sender::sendChannelToClient(socket_connection::SocketConnector &from,char channelId){
+    //TODO error checking
+    //serialize channel and send it
+    std::ostringstream osstream;
+    //first byte is the typeID
+    char c = (char)MessageType::CHANNEL_DATA;
+    osstream.write(&c,1);
+    //second byte is the channelID
+    osstream.write(&channelId,1);
+    //write the data into the stream
+    datamanager()->serializeChannel(this,channelMapping[channelId].name,osstream);
+    from.sendMessage(osstream.str().c_str(),osstream.str().length(),true);
 }
 
 char Sender::addChannel(std::string name){

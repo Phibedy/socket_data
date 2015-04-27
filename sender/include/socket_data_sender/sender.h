@@ -29,6 +29,7 @@ public:
     std::vector<ChannelMapping> channelMapping;
 
     void sendChannelsToClient(socket_connection::SocketConnector &from);
+    void sendChannelToClient(socket_connection::SocketConnector &from,char channelId);
 private:
     socket_connection::SocketServer *server;
     /**

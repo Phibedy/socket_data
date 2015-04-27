@@ -3,11 +3,11 @@
 #include <lms/datamanager.h>
 #include <socket_connection/socket_listener.h>
 #include <socket_data/message_types.h>
+#include <algorithm>
 
 bool Receiver::cycle(){
-    logger.error("HIER BIN ICH");
     client->cycleClient();
-    getDataFromServer();
+    getDataFromServer(false);
     return true;
 }
 
@@ -43,12 +43,48 @@ void Receiver::registerChannelsAtServer(const std::vector<std::string> &channels
     client->sendMessageToAllServers(toSend.c_str(),toSend.size(),true);
 }
 
-void Receiver::getDataFromServer(){
+void Receiver::getDataFromServer(char channelID){
+    //add type
+    std::string toSend(1,(char)MessageType::GET_CHANNEL_DATA);
+    //add channelID
+    toSend += channelID;
+    client->sendMessageToAllServers(toSend.c_str(),toSend.size(),true);
+    //set channel busy
+    startGettingChannel(channelID);
+}
+void Receiver::getDataFromServer(std::string channelName){
+    char id = getChannelIdFromName(channelName);
+    if(id == -1){
+        //TODO error handling
+        return;
+    }
+    getDataFromServer(id);
+}
+
+char Receiver::getChannelIdFromName(std::string name){
+    for(ChannelMapping cM : m_channelMapping){
+        return cM.iD;
+    }
+    return -1;
+}
+
+void Receiver::getDataFromServer(bool force){
     if(m_channelMapping.size() == 0){
         logger.info("getDataFromServer") << "No channels registered yet on the server";
+        return;
     }
-    std::string toSend(1,(char)MessageType::GET_CHANNEL_DATA);
-    client->sendMessageToAllServers(toSend.c_str(),toSend.size(),true);
+    if(force){
+        std::string toSend(1,(char)MessageType::GET_CHANNEL_DATA_ALL);
+        client->sendMessageToAllServers(toSend.c_str(),toSend.size(),true);
+    }else{
+        for(ChannelMapping cM:m_channelMapping){
+            if(!isChannelBusy(cM.iD)){
+                getDataFromServer(cM.iD);
+            }else{
+                logger.debug("CHANNEL BUSY") << cM.name;
+            }
+        }
+    }
 }
 
 void Receiver::receivedMessage(socket_connection::SocketConnector &from, char* buff, int bytesRead){
@@ -65,6 +101,7 @@ void Receiver::receivedMessage(socket_connection::SocketConnector &from, char* b
                 std::istringstream is(std::string(&buff[2],bytesRead-2));
                 datamanager()->deserializeChannel(this,cM.name,is);
                 logger.debug("Receiver::receivedMessage") << "CHANNEL_MAPPING: name" << cM.name;
+                gotChannel(cM.iD);
             }
         }
         break;
@@ -79,7 +116,7 @@ void Receiver::receivedMessage(socket_connection::SocketConnector &from, char* b
     case MessageType::ERROR:
 
         break;
-    case MessageType::GET_CHANNEL_DATA:
+    case MessageType::GET_CHANNEL_DATA_ALL:
         //shouldn't be called on the receiver!
         break;
     case MessageType::REGISTER_CHANNEL:
@@ -90,10 +127,23 @@ void Receiver::receivedMessage(socket_connection::SocketConnector &from, char* b
     }
 }
 
+
+void Receiver::startGettingChannel(char channelId){
+    busyChannels.push_back(channelId);
+}
+
+void Receiver::gotChannel(char channelId){
+    busyChannels.erase(std::remove(busyChannels.begin(),busyChannels.end(),channelId),busyChannels.end());
+}
+
+bool Receiver::isChannelBusy(char channelId){
+    return std::find(busyChannels.begin(), busyChannels.end(), channelId) != busyChannels.end();
+}
+
 void Receiver::channelMapping(char* buff, int bytesRead){
     std::vector<std::string> channels = lms::extra::split(buff,bytesRead-1,';');
     for(int i = 0; i< channels.size(); i += 2){
-        logger.error("RECEIVER::CHANNELMAPPING") << channels[i] << " " << (int)(channels[i+1][0]);
+        logger.debug("RECEIVER::CHANNELMAPPING") << channels[i] << " " << (int)(channels[i+1][0]);
         m_channelMapping.push_back(ChannelMapping(channels[i],(int)(channels[i+1][0])));
     }
 }
