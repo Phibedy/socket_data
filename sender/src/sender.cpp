@@ -1,4 +1,5 @@
 #include <socket_data_sender/sender.h>
+#include <lms/datamanager.h>
 #include <string>
 #include <socket_data/message_types.h>
 #include <lms/extra/string.h>
@@ -33,49 +34,54 @@ void Sender::receivedMessage(socket_connection::SocketConnector &from, char* buf
         break;
     case MessageType::GET_CHANNEL_DATA:
         //TODO send channel data
+        logger.error("GETCHANNELDATA");
+        sendChannelsToClient(from);
         break;
     case MessageType::REGISTER_CHANNEL:
         //TODO does that really add an element if it doesn't exists? :D
-        std::vector<int> &clientMapping = clientChannels[from.getID()];
+        logger.error("register channels: ") << "clientID: " << from.getID();
+        std::vector<char> &clientMapping = clientChannels[from.getID()];
 
         //split the string
         std::vector<std::string> channels = lms::extra::split(&buff[1],bytesRead-1,';');
-        if(clientMapping.size() == 0){
+        if(channels.size() == 0){
+            logger.error("register channels: ") << "NO CHANNELS RECEIVED!";
             //no channels received!
             break;
         }
 
         std::string ans(1,(char)MessageType::CHANNEL_MAPPING);
         for(std::string &channel:channels){
-            int channelID = addChannel(channel);
+            char channelID = addChannel(channel);
             clientMapping.push_back(channelID);
             logger.debug("REGISTER_CHANNEL") <<"NAME-"<< channel<<"---";
-            ans += channel+";"+std::to_string(channelID)+";";
+            ans += channel+";"+ channelID+";";
         }
         from.sendMessage(ans.c_str(),ans.length(),true);
-        /*
-        char *resultBuff = &buff[1];
-        int oldFound = 0;
-        //add message id
-        std::string ans(1,(char)MessageType::CHANNEL_MAPPING);
-        for(int i = 0; i < bytesRead-1; i++){
-            if(resultBuff[i] == ';'){
-                //found new part
-                std::string name(&resultBuff[oldFound],i-oldFound);
-                oldFound = i+1;
-                logger.debug("REGISTER_CHANNEL") <<"NAME-"<< name<<"---";
-                int channelID = addChannel(name);
-                clientMapping.push_back(channelID);
-                ans += channelID+";";
-            }
-        }
-        from.sendMessage(ans.c_str(),ans.length(),true);
-        */
         break;
     }
 }
 
-int Sender::addChannel(std::string name){
+void Sender::sendChannelsToClient(socket_connection::SocketConnector &from){
+    std::vector<char> &clientMapping = clientChannels[from.getID()];
+    if(clientMapping.size() == 0){
+        logger.error("Client tried to get channels but has no registered!") <<"clientID: " <<from.getID();
+    }
+    for(char channelID : clientMapping){
+        //serialize channel and send it
+        std::ostringstream osstream;
+        //first byte is the typeID
+        char c = (char)MessageType::CHANNEL_DATA;
+        osstream.write(&c,1);
+        //second byte is the channelID
+        osstream.write(&channelID,1);
+        //write the data into the stream
+        datamanager()->serializeChannel(this,channelMapping[channelID].name,osstream);
+        from.sendMessage(osstream.str().c_str(),osstream.str().length(),true);
+    }
+}
+
+char Sender::addChannel(std::string name){
     //check if channel is already registered
     for(int i = 0; i < channelMapping.size(); i++){
         if(channelMapping[i].name == name){
@@ -86,6 +92,8 @@ int Sender::addChannel(std::string name){
     cm.name = name;
     cm.iD = channelMapping.size();
     channelMapping.push_back(cm);
+    logger.debug("added Channel") << "name,id" << name <<","<< (int)cm.iD;
+    datamanager()->getReadAccess(this,name);
     return channelMapping.size() -1;
 }
 

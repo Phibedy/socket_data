@@ -18,10 +18,17 @@ public:
     void receivedMessage(socket_connection::SocketConnector &from, char* buff, int bytesRead);
     void disconnected(const socket_connection::SocketConnector &disconnected);
     void connected(const socket_connection::SocketConnector &connected);
+    /**
+     * @brief clientChannels first is the iD of the client, second values are the iDs for the dataChannels
+     */
+    std::map<int,std::vector<char>> clientChannels;
 
-    std::map<int,std::vector<int>> clientChannels;
-
+    /**
+     * @brief channelMapping mapping channelID and channelName (not that fancy)
+     */
     std::vector<ChannelMapping> channelMapping;
+
+    void sendChannelsToClient(socket_connection::SocketConnector &from);
 private:
     socket_connection::SocketServer *server;
     /**
@@ -29,7 +36,7 @@ private:
      * @param name
      * @return the id of the channel
      */
-    int addChannel(std::string name);
+    char addChannel(std::string name);
 };
 
 #endif /*SOCKET_DATA_RECEIVER_H*/

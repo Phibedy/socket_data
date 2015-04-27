@@ -5,7 +5,9 @@
 #include <socket_data/message_types.h>
 
 bool Receiver::cycle(){
+    logger.error("HIER BIN ICH");
     client->cycleClient();
+    getDataFromServer();
     return true;
 }
 
@@ -42,22 +44,37 @@ void Receiver::registerChannelsAtServer(const std::vector<std::string> &channels
 }
 
 void Receiver::getDataFromServer(){
-    std::string toSend =std::to_string((int)MessageType::GET_CHANNEL_DATA);
+    if(m_channelMapping.size() == 0){
+        logger.info("getDataFromServer") << "No channels registered yet on the server";
+    }
+    std::string toSend(1,(char)MessageType::GET_CHANNEL_DATA);
     client->sendMessageToAllServers(toSend.c_str(),toSend.size(),true);
 }
 
 void Receiver::receivedMessage(socket_connection::SocketConnector &from, char* buff, int bytesRead){
     char type = buff[0];
+    int channelID;
     logger.debug("Receiver::receivedMessage") << (int)type;
     switch ((MessageType)((int)type)) {
     case MessageType::CHANNEL_DATA:
+        channelID = (int) buff[1];
+        logger.debug("Receiver::receivedMessage") << "CHANNEL_MAPPING iD: "<< channelID;
+        for(ChannelMapping cM : m_channelMapping){
+            if(cM.iD == channelID){
+                //serialize channel
+                std::istringstream is(std::string(&buff[2],bytesRead-2));
+                datamanager()->deserializeChannel(this,cM.name,is);
+                logger.debug("Receiver::receivedMessage") << "CHANNEL_MAPPING: name" << cM.name;
+            }
+        }
         break;
     case MessageType::MESSAGE:
 
         break;
     case MessageType::CHANNEL_MAPPING:
         //channelMapping
-
+        logger.debug("Receiver::receivedMessage") << "CHANNEL_MAPPING";
+        channelMapping(&buff[1],bytesRead-1);
         break;
     case MessageType::ERROR:
 
@@ -70,6 +87,14 @@ void Receiver::receivedMessage(socket_connection::SocketConnector &from, char* b
         break;
     default:
         break;
+    }
+}
+
+void Receiver::channelMapping(char* buff, int bytesRead){
+    std::vector<std::string> channels = lms::extra::split(buff,bytesRead-1,';');
+    for(int i = 0; i< channels.size(); i += 2){
+        logger.error("RECEIVER::CHANNELMAPPING") << channels[i] << " " << (int)(channels[i+1][0]);
+        m_channelMapping.push_back(ChannelMapping(channels[i],(int)(channels[i+1][0])));
     }
 }
 

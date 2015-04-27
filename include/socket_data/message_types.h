@@ -8,6 +8,8 @@ enum class MessageType{
 };
 
 struct ChannelMapping{
+    ChannelMapping(){}
+    ChannelMapping(std::string name, char iD):name(name),iD(iD){}
     std::string name;
     char iD;
 };
