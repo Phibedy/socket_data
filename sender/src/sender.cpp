@@ -34,9 +34,11 @@ void Sender::receivedMessage(socket_connection::SocketConnector &from, char* buf
         break;
     case MessageType::GET_CHANNEL_DATA:
         //send the given channel to the client
+        logger.debug("receivedMessage") << "GET_CHANNEL_DATA";
         sendChannelToClient(from,buff[1]);
         break;
     case MessageType::GET_CHANNEL_DATA_ALL:
+        logger.debug("receivedMessage") << "GET_CHANNEL_DATA_ALL";
         sendChannelsToClient(from);
         break;
     case MessageType::REGISTER_CHANNEL:
@@ -86,6 +88,7 @@ void Sender::sendChannelToClient(socket_connection::SocketConnector &from,char c
     osstream.write(&channelId,1);
     //write the data into the stream
     datamanager()->serializeChannel(this,channelMapping[channelId].name,osstream);
+    logger.debug("sendChannelToClient") << channelMapping[channelId].name << " bytesToSend: "<<osstream.str().length();
     from.sendMessage(osstream.str().c_str(),osstream.str().length(),true);
 }
 

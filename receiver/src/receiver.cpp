@@ -50,6 +50,7 @@ void Receiver::getDataFromServer(char channelID){
     toSend += channelID;
     client->sendMessageToAllServers(toSend.c_str(),toSend.size(),true);
     //set channel busy
+
     startGettingChannel(channelID);
 }
 void Receiver::getDataFromServer(std::string channelName){
@@ -94,13 +95,12 @@ void Receiver::receivedMessage(socket_connection::SocketConnector &from, char* b
     switch ((MessageType)((int)type)) {
     case MessageType::CHANNEL_DATA:
         channelID = (int) buff[1];
-        logger.debug("Receiver::receivedMessage") << "CHANNEL_MAPPING iD: "<< channelID;
+        logger.debug("Receiver::receivedMessage") << "Channel : "<< getChannelName(channelID);
         for(ChannelMapping cM : m_channelMapping){
             if(cM.iD == channelID){
                 //serialize channel
                 std::istringstream is(std::string(&buff[2],bytesRead-2));
                 datamanager()->deserializeChannel(this,cM.name,is);
-                logger.debug("Receiver::receivedMessage") << "CHANNEL_MAPPING: name" << cM.name;
                 gotChannel(cM.iD);
             }
         }
@@ -129,10 +129,23 @@ void Receiver::receivedMessage(socket_connection::SocketConnector &from, char* b
 
 
 void Receiver::startGettingChannel(char channelId){
+    logger.debug("startGettingChannel") <<getChannelName(channelId);
     busyChannels.push_back(channelId);
 }
 
+std::string Receiver::getChannelName(char channelId){
+    for(ChannelMapping cm:m_channelMapping){
+        if(cm.iD == channelId){
+            return cm.name;
+        }
+    }
+    logger.error("getChannelName") << "No channel with the given Id: " <<channelId;
+    return "";
+}
+
 void Receiver::gotChannel(char channelId){
+
+    logger.debug("gotChannel") <<getChannelName(channelId);
     busyChannels.erase(std::remove(busyChannels.begin(),busyChannels.end(),channelId),busyChannels.end());
 }
 

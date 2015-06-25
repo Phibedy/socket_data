@@ -51,7 +51,7 @@ private:
 
     void gotChannel(char channelId);
     bool isChannelBusy(char channelId);
-
+    std::string getChannelName(char channelId);
 
     void channelMapping(char* buff, int bytesRead);
     /**
