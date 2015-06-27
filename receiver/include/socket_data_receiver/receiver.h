@@ -5,11 +5,16 @@
 #include <socket_connection/socket_client.h>
 #include <socket_connection/socket_listener.h>
 #include <socket_data/message_types.h>
+#include "lms/type/module_config.h"
 
 #include <map>
 #include <string>
 class Receiver:public lms::Module, public socket_connection::SocketListener{
 public:
+
+
+    //HACK
+    bool m_connected;
 
     bool initialize();
     bool deinitialize();
@@ -25,7 +30,11 @@ public:
      * @brief registerChannelsAtServer registers channels at server, they are available if((after the next server-cycle - server processed messages) && (in the next cycle of the client))
      * @param channels
      */
-    void registerChannelsAtServer(const std::vector<std::string> &channels);
+    void registerChannelsAtServer();
+    /**
+     * @brief registerChannelsAtDataManager registers channels at the datamanager (grants serialize-access)
+     */
+    void registerChannelsAtDataManager();
 
     /**
      * @brief getDataFromServer asks for all data from the server
@@ -46,6 +55,8 @@ private:
     socket_connection::SocketClient *client;
     std::vector<ChannelMapping> m_channelMapping;
     std::vector<int> busyChannels;
+
+    const lms::type::ModuleConfig* config;
 
     void startGettingChannel(char channelId);
 

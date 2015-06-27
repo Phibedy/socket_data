@@ -6,26 +6,26 @@
 #include <algorithm>
 
 bool Receiver::cycle(){
+    if(!m_connected){
+        client = new socket_connection::SocketClient(&logger);
+        client->setSocketListener(this);
+        if(!client->connectToServer(config->get<std::string>("ip","127.0.0.1"),getConfig()->get<int>("port",65111))){
+            logger.warn("Not connected with server!");
+            return true;
+        }else{
+            m_connected = true;
+            registerChannelsAtServer();
+        }
+    }
     client->cycleClient();
     getDataFromServer(false);
     return true;
 }
-
 bool Receiver::initialize(){
-    client = new socket_connection::SocketClient(&logger);
-    client->connectToServer(getConfig()->get<std::string>("ip","127.0.0.1"),getConfig()->get<int>("port",65111));
-    client->setSocketListener(this);
+    m_connected = false;
+    config = getConfig();
 
-    //get write access to all channels you want to deserialize
-    std::vector<std::string> channels =  getConfig()->getArray<std::string>("dataChannels");
-    for(std::string &channel:channels){
-        datamanager()->getWriteAccess(this,channel);
-    }
-    if(channels.size() > 0){
-        registerChannelsAtServer(channels);
-    }else{
-        logger.warn("init") << "no channels to receive given!";
-    }
+    registerChannelsAtDataManager();
     return true;
 }
 
@@ -34,7 +34,26 @@ bool Receiver::deinitialize(){
     return false;
 }
 
-void Receiver::registerChannelsAtServer(const std::vector<std::string> &channels){
+
+void Receiver::registerChannelsAtDataManager(){
+    const std::vector<std::string> channels =  config->getArray<std::string>("dataChannels");
+    if(channels.size()  == 0){
+        logger.warn("registerChannelsAtServer") << "no channels to receive given!";
+        return;
+    }
+    for(const std::string &channel:channels){
+        datamanager()->getWriteAccess(this,channel);
+    }
+}
+
+void Receiver::registerChannelsAtServer(){
+    const std::vector<std::string> channels =  config->getArray<std::string>("dataChannels");
+    //get write access to all channels you want to deserialize
+    if(channels.size()  == 0){
+        logger.warn("registerChannelsAtServer") << "no channels to receive given!";
+        return;
+    }
+    //send register request!
     std::string toSend(1,(char)MessageType::REGISTER_CHANNEL);
     for(const std::string &channel:channels){
         toSend += channel;
@@ -64,7 +83,8 @@ void Receiver::getDataFromServer(std::string channelName){
 
 char Receiver::getChannelIdFromName(std::string name){
     for(ChannelMapping cM : m_channelMapping){
-        return cM.iD;
+        if(name == cM.name)
+            return cM.iD;
     }
     return -1;
 }
@@ -89,6 +109,7 @@ void Receiver::getDataFromServer(bool force){
 }
 
 void Receiver::receivedMessage(socket_connection::SocketConnector &from, char* buff, int bytesRead){
+    (void)from;
     char type = buff[0];
     int channelID;
     logger.debug("Receiver::receivedMessage") << (int)type;
@@ -162,9 +183,13 @@ void Receiver::channelMapping(char* buff, int bytesRead){
 }
 
 void Receiver::disconnected(const socket_connection::SocketConnector &disconnected){
-
+    (void)disconnected;
+    m_connected = false;
+    busyChannels.clear();
+    m_channelMapping.clear();
 }
 
 void Receiver::connected(const socket_connection::SocketConnector &connected){
-
+    (void)connected;
+    m_connected = true;
 }
