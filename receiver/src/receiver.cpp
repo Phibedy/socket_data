@@ -7,6 +7,10 @@
 
 bool Receiver::cycle(){
     if(!m_connected){
+        if(client != nullptr){
+            client->close();
+            delete client;
+        }
         client = new socket_connection::SocketClient(&logger);
         client->setSocketListener(this);
         if(!client->connectToServer(config->get<std::string>("ip","127.0.0.1"),getConfig()->get<int>("port",65111))){
