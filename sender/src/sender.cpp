@@ -94,7 +94,7 @@ void Sender::sendChannelToClient(socket_connection::SocketConnector &from,char c
 
 char Sender::addChannel(std::string name){
     //check if channel is already registered
-    for(int i = 0; i < channelMapping.size(); i++){
+    for(uint i = 0; i < channelMapping.size(); i++){
         if(channelMapping[i].name == name){
             return i;
         }
@@ -109,9 +109,11 @@ char Sender::addChannel(std::string name){
 }
 
 void Sender::disconnected(const socket_connection::SocketConnector &disconnected){
+    (void)disconnected;
     //TODO
 }
 
 void Sender::connected(const socket_connection::SocketConnector &connected){
+    (void)connected;
     //TODO
 }
