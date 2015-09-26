@@ -10,7 +10,7 @@ bool Receiver::cycle(){
         if(client != nullptr){
             client->reset();
         }else{
-            client = new socket_connection::SocketClient(&logger);
+            client = new socket_connection::SocketClient(logger);
         }
         client->setSocketListener(this);
         if(!client->connectToServer(config->get<std::string>("ip","127.0.0.1"),getConfig()->get<int>("port",65111))){
@@ -181,7 +181,7 @@ bool Receiver::isChannelBusy(char channelId){
 
 void Receiver::channelMapping(char* buff, int bytesRead){
     std::vector<std::string> channels = lms::extra::split(buff,bytesRead-1,';');
-    for(int i = 0; i< channels.size(); i += 2){
+    for(size_t i = 0; i< channels.size(); i += 2){
         logger.debug("RECEIVER::CHANNELMAPPING") << channels[i] << " " << (int)(channels[i+1][0]);
         m_channelMapping.push_back(ChannelMapping(channels[i],(int)(channels[i+1][0])));
     }

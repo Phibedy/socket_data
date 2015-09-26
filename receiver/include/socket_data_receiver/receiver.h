@@ -56,7 +56,7 @@ private:
     std::vector<ChannelMapping> m_channelMapping;
     std::vector<int> busyChannels;
 
-    const lms::type::ModuleConfig* config;
+    const lms::ModuleConfig* config;
 
     void startGettingChannel(char channelId);
 
