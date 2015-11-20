@@ -126,7 +126,9 @@ void Receiver::receivedMessage(socket_connection::SocketConnector &from, char* b
             if(cM.iD == channelID){
                 //serialize channel
                 std::istringstream is(std::string(&buff[2],bytesRead-2));
-                datamanager()->deserializeChannel(this,cM.name,is);
+                if(!datamanager()->deserializeChannel(this,cM.name,is)){
+                    logger.error("Couldn't deserialize channel")<<cM.name;
+                }
                 gotChannel(cM.iD);
             }
         }
