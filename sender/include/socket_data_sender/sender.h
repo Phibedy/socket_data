@@ -1,7 +1,7 @@
 #ifndef SOCKET_DATA_RECEIVER_H
 #define SOCKET_DATA_RECEIVER_H
 #include <lms/module.h>
-#include <socket_connection/socket_server.h>
+#include <socket_connection/socket_connection_handler.h>
 #include <vector>
 #include <map>
 #include <socket_data/message_types.h>
@@ -31,7 +31,7 @@ public:
     void sendChannelsToClient(socket_connection::SocketConnector &from);
     void sendChannelToClient(socket_connection::SocketConnector &from,char channelId);
 private:
-    socket_connection::SocketServer *server;
+    socket_connection::SocketConnectionHandler *server;
     /**
      * @brief addChannel
      * @param name

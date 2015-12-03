@@ -2,7 +2,7 @@
 #define SOCKET_DATA_RECEIVER_H
 #include <lms/module.h>
 #include <socket_connection/socket_connector.h>
-#include <socket_connection/socket_client.h>
+#include <socket_connection/socket_connection_handler.h>
 #include <socket_connection/socket_listener.h>
 #include <socket_data/message_types.h>
 #include "lms/type/module_config.h"
@@ -52,11 +52,9 @@ public:
      */
     void getDataFromServer(std::string channelName);
 private:
-    socket_connection::SocketClient *client;
+    socket_connection::SocketConnectionHandler *client;
     std::vector<ChannelMapping> m_channelMapping;
     std::vector<int> busyChannels;
-
-    const lms::ModuleConfig* config;
 
     void startGettingChannel(char channelId);
 
