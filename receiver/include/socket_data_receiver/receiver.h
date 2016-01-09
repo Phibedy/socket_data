@@ -13,7 +13,9 @@ class Receiver:public lms::Module, public socket_connection::SocketListener{
 public:
 
 
-    //HACK
+    /**
+     * @brief m_connected true if the receiver is connected to a server
+     */
     bool m_connected;
 
     bool initialize();
@@ -22,9 +24,9 @@ public:
     bool cycle();
 
     //interface methods
-    void receivedMessage(socket_connection::SocketConnector &from, char* buff, int bytesRead);
-    void disconnected(const socket_connection::SocketConnector &disconnected);
-    void connected(const socket_connection::SocketConnector &connected);
+    void receivedMessage(socket_connection::SocketConnector &from, char* buff, int bytesRead) override;
+    void disconnected(const socket_connection::SocketConnector &disconnected) override;
+    void connected(const socket_connection::SocketConnector &connected) override;
 
     /**
      * @brief registerChannelsAtServer registers channels at server, they are available if((after the next server-cycle - server processed messages) && (in the next cycle of the client))

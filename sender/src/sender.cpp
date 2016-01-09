@@ -41,7 +41,6 @@ void Sender::receivedMessage(socket_connection::SocketConnector &from, char* buf
         sendChannelsToClient(from);
         break;
     case MessageType::REGISTER_CHANNEL:
-        //TODO does that really add an element if it doesn't exists? :D
         logger.error("register channels: ") << "clientID: " << from.getID();
         std::vector<char> &clientMapping = clientChannels[from.getID()];
 
@@ -86,7 +85,7 @@ void Sender::sendChannelToClient(socket_connection::SocketConnector &from,char c
     //second byte is the channelID
     osstream.write(&channelId,1);
     //write the data into the stream
-    datamanager()->serializeChannel(this,channelMapping[channelId].name,osstream);
+    datamanager()->serializeChannel(this,channelMapping[channelId].name,osstream); //TODO use stored
     logger.debug("sendChannelToClient") << channelMapping[channelId].name << " bytesToSend: "<<osstream.str().length();
     from.sendMessage(osstream.str().c_str(),osstream.str().length(),true);
 }
@@ -103,16 +102,25 @@ char Sender::addChannel(std::string name){
     cm.iD = channelMapping.size();
     channelMapping.push_back(cm);
     logger.debug("added Channel") << "name,id" << name <<","<< (int)cm.iD;
-    datamanager()->getReadAccess(this,name);
+    //datamanager()->getReadAccess(this,name);
+    readChannel<lms::Any>(name); //TODO store them
     return channelMapping.size() -1;
 }
 
 void Sender::disconnected(const socket_connection::SocketConnector &disconnected){
-    (void)disconnected;
-    //TODO
+    if(clientChannels.find(disconnected.getID())!=clientChannels.end()){
+        clientChannels.erase(disconnected.getID());
+        logger.info("disconnected")<<"client disconnected: "<<disconnected.address;
+    }else{
+        logger.info("disconnected")<<"client is already disconnected: "<<disconnected.address;
+    }
 }
 
 void Sender::connected(const socket_connection::SocketConnector &connected){
-    (void)connected;
-    //TODO
+    if(clientChannels.find(connected.getID())==clientChannels.end()){
+        clientChannels[connected.getID()];
+        logger.info("connected")<<"client connected: "<<connected.address;
+    }else{
+        logger.error("connected")<<"client is already connected: "<<connected.address;
+    }
 }
