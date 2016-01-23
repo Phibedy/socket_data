@@ -85,7 +85,7 @@ void Sender::sendChannelToClient(socket_connection::SocketConnector &from,char c
     //second byte is the channelID
     osstream.write(&channelId,1);
     //write the data into the stream
-    datamanager()->serializeChannel(this,channelMapping[channelId].name,osstream); //TODO use stored
+    readChannel<lms::Any>(channelMapping[channelId].name).serialize(osstream); //TODO use stored
     logger.debug("sendChannelToClient") << channelMapping[channelId].name << " bytesToSend: "<<osstream.str().length();
     from.sendMessage(osstream.str().c_str(),osstream.str().length(),true);
 }

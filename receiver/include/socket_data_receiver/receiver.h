@@ -5,7 +5,7 @@
 #include <socket_connection/socket_connection_handler.h>
 #include <socket_connection/socket_listener.h>
 #include <socket_data/message_types.h>
-#include "lms/type/module_config.h"
+#include "lms/config.h"
 
 #include <map>
 #include <string>
