@@ -1,0 +1,7 @@
+{
+"name": "socket_data",
+"targets":["socket_data_sender","socket_data_receiver"],
+"dependencies":["socket_connection","lms"],
+"description":"Handles images TODO",
+"includes":["include","receiver/include","sender/include"]
+}
