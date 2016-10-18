@@ -1,7 +1,7 @@
 #include <socket_data_sender/sender.h>
 #include <string>
 #include <socket_data/message_types.h>
-#include <lms/extra/string.h>
+
 bool Sender::cycle(){
     server->cycle();
     return true;
@@ -45,7 +45,7 @@ void Sender::receivedMessage(socket_connection::SocketConnector &from, char* buf
         std::vector<char> &clientMapping = clientChannels[from.getID()];
 
         //split the string
-        std::vector<std::string> channels = lms::extra::split(&buff[1],bytesRead-1,';');
+        std::vector<std::string> channels = split(&buff[1],bytesRead-1,';');
         if(channels.size() == 0){
             logger.error("register channels: ") << "NO CHANNELS RECEIVED!";
             //no channels received!

@@ -181,7 +181,7 @@ bool Receiver::isChannelBusy(char channelId){
 }
 
 void Receiver::channelMapping(char* buff, int bytesRead){
-    std::vector<std::string> channels = lms::extra::split(buff,bytesRead-1,';');
+    std::vector<std::string> channels = split(buff,bytesRead-1,';');
     for(size_t i = 0; i< channels.size(); i += 2){
         logger.debug("RECEIVER::CHANNELMAPPING") << channels[i] << " " << (int)(channels[i+1][0]);
         m_channelMapping.push_back(ChannelMapping(channels[i],(int)(channels[i+1][0])));
