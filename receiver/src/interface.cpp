@@ -1,7 +1,5 @@
 #include <socket_data_receiver/receiver.h>
 
-extern "C" {
-void* getInstance () {
-    return new Receiver();
-}
-}
+LMS_EXPORT_BEGIN
+LMS_EXPORT_MODULE(Receiver)
+LMS_EXPORT_END
